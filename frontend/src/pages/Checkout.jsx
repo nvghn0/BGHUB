@@ -1,174 +1,136 @@
-import { useEffect, useState } from "react";
-import API from "../api/api";
+import React, { useState, useEffect } from "react";
+import { placeOrder } from "../services/orderService";
 import { useNavigate } from "react-router-dom";
 
-export default function Checkout() {
+const Checkout = () => {
 
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
-    const [addresses, setAddresses] = useState([]);
-    const [selectedAddressId, setSelectedAddressId] = useState("");
-    const [useNewAddress, setUseNewAddress] = useState(false);
+  const [addresses, setAddresses] = useState([]);
+  const [selectedAddress, setSelectedAddress] = useState("");
 
-    const [shipping, setShipping] = useState({
-        fullName: "",
-        phone: "",
-        addressLine1: "",
-        city: "",
-        state: "",
-        pincode: ""
+  const [shipping, setShipping] = useState({
+    fullName: "",
+    phone: "",
+    addressLine1: "",
+    city: "",
+    state: "",
+    pincode: ""
+  });
+
+  const [loading, setLoading] = useState(false);
+
+  // Fetch saved addresses
+  useEffect(() => {
+    const fetchAddresses = async () => {
+      const data = await getAddresses();
+      setAddresses(data);
+    };
+
+    fetchAddresses();
+  }, []);
+
+  const handleChange = (e) => {
+    setShipping({
+      ...shipping,
+      [e.target.name]: e.target.value
     });
+  };
 
-    const [loading, setLoading] = useState(false);
+  const handleOrder = async () => {
+    try {
+      setLoading(true);
 
-    // ============================
-    // FETCH USER ADDRESSES
-    // ============================
-    useEffect(() => {
-        fetchUser();
-    }, []);
+      const res = await placeOrder({
+        shipping,
+        addressId: selectedAddress,
+        paymentMethod: "COD"
+      });
 
-    const fetchUser = async () => {
-        try {
-            const res = await API.get("/user/me");
-            setAddresses(res.data.addresses || []);
-        } catch (err) {
-            alert("Login required");
-            navigate("/login");
-        }
-    };
+      alert("Order placed!");
+      navigate("/");
+    } catch (err) {
+      alert(err.response?.data?.message || "Order failed");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    // ============================
-    // HANDLE INPUT CHANGE
-    // ============================
-    const handleChange = (e) => {
-        setShipping({
-            ...shipping,
-            [e.target.name]: e.target.value
-        });
-    };
+  return (
+    <div style={{ maxWidth: "500px", margin: "auto" }}>
 
-    // ============================
-    // PLACE ORDER
-    // ============================
-    const placeOrder = async () => {
-        try {
-            setLoading(true);
+      <h2>Checkout</h2>
 
-            let payload = {};
+      <input
+        name="fullName"
+        placeholder="Full Name"
+        onChange={handleChange}
+      />
 
-            if (useNewAddress) {
-                payload.shipping = shipping;
-            } else {
-                if (!selectedAddressId) {
-                    alert("Select address first");
-                    setLoading(false);
-                    return;
-                }
-                payload.addressId = selectedAddressId;
-            }
+      <br /><br />
 
-            const res = await API.post("/orders/place", payload);
+      <input
+        name="phone"
+        placeholder="Phone"
+        onChange={handleChange}
+      />
 
-            alert("Order placed successfully 🎉");
-            navigate("/");
+      <br /><br />
 
-        } catch (err) {
-            alert(err.response?.data?.message || "Order failed");
-        } finally {
-            setLoading(false);
-        }
-    };
+      <input
+        name="addressLine1"
+        placeholder="Address"
+        onChange={handleChange}
+      />
 
-    return (
-        <div style={{ padding: "20px" }}>
+      <br /><br />
 
-            <h2>Checkout</h2>
+      <input
+        name="city"
+        placeholder="City"
+        onChange={handleChange}
+      />
 
-            {/* SAVED ADDRESSES */}
-            {addresses.length > 0 && (
-                <>
-                    <h3>Select Saved Address</h3>
+      <br /><br />
 
-                    {addresses.map((addr) => (
-                        <div key={addr._id}>
-                            <input
-                                type="radio"
-                                name="address"
-                                value={addr._id}
-                                checked={selectedAddressId === addr._id}
-                                onChange={(e) => {
-                                    setSelectedAddressId(e.target.value);
-                                    setUseNewAddress(false);
-                                }}
-                            />
-                            {addr.fullName}, {addr.addressLine1}, {addr.city}
-                        </div>
-                    ))}
-                </>
-            )}
+      <input
+        name="state"
+        placeholder="State"
+        onChange={handleChange}
+      />
 
-            <hr />
+      <br /><br />
 
-            {/* NEW ADDRESS OPTION */}
-            <h3>
-                <input
-                    type="checkbox"
-                    checked={useNewAddress}
-                    onChange={() => {
-                        setUseNewAddress(!useNewAddress);
-                        setSelectedAddressId("");
-                    }}
-                />
-                Use New Address
-            </h3>
+      <input
+        name="pincode"
+        placeholder="Pincode"
+        onChange={handleChange}
+      />
 
-            {useNewAddress && (
-                <div>
-                    <input
-                        name="fullName"
-                        placeholder="Full Name"
-                        onChange={handleChange}
-                    /><br />
+      <br /><br />
 
-                    <input
-                        name="phone"
-                        placeholder="Phone"
-                        onChange={handleChange}
-                    /><br />
+      {/* Address Dropdown */}
+      <select onChange={(e) => setSelectedAddress(e.target.value)}>
+        <option value="">Select Address</option>
 
-                    <input
-                        name="addressLine1"
-                        placeholder="Address Line"
-                        onChange={handleChange}
-                    /><br />
+        {addresses.map((addr) => (
+          <option key={addr._id} value={addr._id}>
+            {addr.addressLine1}
+          </option>
+        ))}
+      </select>
 
-                    <input
-                        name="city"
-                        placeholder="City"
-                        onChange={handleChange}
-                    /><br />
+      <br /><br />
 
-                    <input
-                        name="state"
-                        placeholder="State"
-                        onChange={handleChange}
-                    /><br />
+      <button
+        onClick={handleOrder}
+        disabled={loading}
+      >
+        {loading ? "Placing Order..." : "Place Order"}
+      </button>
 
-                    <input
-                        name="pincode"
-                        placeholder="Pincode"
-                        onChange={handleChange}
-                    /><br />
-                </div>
-            )}
+    </div>
+  );
+};
 
-            <br />
-
-            <button onClick={placeOrder} disabled={loading}>
-                {loading ? "Placing..." : "Place Order"}
-            </button>
-
-        </div>
-    );
-}
+export default Checkout;

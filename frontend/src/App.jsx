@@ -6,21 +6,82 @@ import Grocery from "./pages/Grocery";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import Login from "./pages/Login";
+import Addresses from "./pages/Addresses";
+
+import AdminProtectedRoute from "./components/AdminProtectedRoute";
+
+// ADMIN PAGES
+import AdminLogin from "./admin/AdminLogin";
+import AdminDashboard from "./admin/AdminDashboard";
+import AdminGrocery from "./admin/AdminGrocery";
+import AdminOrders from "./admin/AdminOrders";
+import AdminProducts from "./admin/AdminProducts";
 
 function App() {
-  return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/grocery" element={<Grocery />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/checkout" element={<Checkout />} />
-          <Route path="/login" element={<Login />} />
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
-  );
+    return (
+        <AuthProvider>
+            <BrowserRouter>
+
+                <Routes>
+
+                    {/* USER ROUTES */}
+
+                    <Route path="/" element={<Home />} />
+                    <Route path="/grocery" element={<Grocery />} />
+                    <Route path="/cart" element={<Cart />} />
+                    <Route path="/checkout" element={<Checkout />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/addresses" element={<Addresses />} />
+
+
+                    {/* ADMIN LOGIN */}
+
+                    <Route path="/P5K4B7" element={<AdminLogin />} />
+
+
+                    {/* ADMIN PROTECTED ROUTES */}
+
+                    <Route
+                        path="/P5K4B7/dashboard"
+                        element={
+                            <AdminProtectedRoute>
+                                <AdminDashboard />
+                            </AdminProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/P5K4B7/grocery"
+                        element={
+                            <AdminProtectedRoute>
+                                <AdminGrocery />
+                            </AdminProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/P5K4B7/orders"
+                        element={
+                            <AdminProtectedRoute>
+                                <AdminOrders />
+                            </AdminProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/P5K4B7/products"
+                        element={
+                            <AdminProtectedRoute>
+                                <AdminProducts />
+                            </AdminProtectedRoute>
+                        }
+                    />
+
+                </Routes>
+
+            </BrowserRouter>
+        </AuthProvider>
+    );
 }
 
 export default App;

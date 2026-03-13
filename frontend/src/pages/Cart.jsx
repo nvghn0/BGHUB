@@ -1,52 +1,107 @@
-import { useEffect, useState } from "react";
-import API from "../api/api";
+import React, {useEffect, useState} from "react";
 import { useNavigate } from "react-router-dom";
 
-export default function Cart() {
+import {
+  getCart,
+  updateCartQty,
+  removeCartItem,
+  toggleCartItem
+} from "../services/cartService";
 
-  const [cart, setCart] = useState(null);
-  const navigate = useNavigate();
+const navigate = useNavigate();
+<button onClick={() => navigate("/checkout")}>
+    Checkout
+    </button>
 
-  useEffect(() => {
-    fetchCart();
-  }, []);
+const Cart = () => {
 
-  const fetchCart = async () => {
-    const res = await API.get("/cart");
-    setCart(res.data);
+  const [cart,setCart] = useState(null);
+
+  const loadCart = async () => {
+    const data = await getCart();
+    setCart(data);
   };
+
+  useEffect(()=>{
+    loadCart();
+  },[]);
+
+
+  const updateQty = async (id,qty) => {
+
+    await updateCartQty(id,qty);
+
+    loadCart();
+  };
+
+
+  const removeItem = async (id) => {
+
+    await removeCartItem(id);
+
+    loadCart();
+  };
+
 
   const toggleItem = async (id) => {
-    await API.put(`/cart/select/${id}`);
-    fetchCart();
+
+    await toggleCartItem(id);
+
+    loadCart();
   };
 
-  const goCheckout = () => {
-    navigate("/checkout");
-  };
 
-  if (!cart) return <p>Loading...</p>;
+  if(!cart) return <h2>Loading...</h2>;
 
   return (
-    <div>
-      <h2>Cart</h2>
 
-      {cart.items.map((item) => (
+    <div>
+
+      <h1>Your Cart</h1>
+
+      {cart.items.map(item => (
+
         <div key={item._id}>
-          <input
-            type="checkbox"
-            checked={item.selected}
-            onChange={() => toggleItem(item._id)}
+
+          <img
+            src={item.imageUrl}
+            width="80"
           />
-          {item.name} - {item.quantity}
+
+          <h3>{item.name}</h3>
+
+          <p>₹ {item.price}</p>
+
+          <p>Qty: {item.quantity}</p>
+
+          <button onClick={()=>updateQty(item._id,item.quantity+1)}>
+            +
+          </button>
+
+          <button onClick={()=>updateQty(item._id,item.quantity-1)}>
+            -
+          </button>
+
+          <button onClick={()=>toggleItem(item._id)}>
+            {item.selected ? "Unselect" : "Select"}
+          </button>
+
+          <button onClick={()=>removeItem(item._id)}>
+            Remove
+          </button>
+
         </div>
+
       ))}
 
-      <h3>Total: {cart.selectedTotal}</h3>
+      <h2>Total: ₹ {cart.total}</h2>
 
-      <button onClick={goCheckout}>
-        Checkout
-      </button>
+      <h2>Selected Total: ₹ {cart.selectedTotal}</h2>
+
     </div>
+
   );
-}
+
+};
+
+export default Cart;
