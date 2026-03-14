@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -8,12 +8,9 @@ import {
   toggleCartItem
 } from "../services/cartService";
 
-const navigate = useNavigate();
-<button onClick={() => navigate("/checkout")}>
-    Checkout
-    </button>
-
 const Cart = () => {
+
+  const navigate = useNavigate();
 
   const [cart,setCart] = useState(null);
 
@@ -26,30 +23,23 @@ const Cart = () => {
     loadCart();
   },[]);
 
-
   const updateQty = async (id,qty) => {
 
     await updateCartQty(id,qty);
-
     loadCart();
   };
-
 
   const removeItem = async (id) => {
 
     await removeCartItem(id);
-
     loadCart();
   };
-
 
   const toggleItem = async (id) => {
 
     await toggleCartItem(id);
-
     loadCart();
   };
-
 
   if(!cart) return <h2>Loading...</h2>;
 
@@ -63,10 +53,7 @@ const Cart = () => {
 
         <div key={item._id}>
 
-          <img
-            src={item.imageUrl}
-            width="80"
-          />
+          <img src={item.imageUrl} width="80" />
 
           <h3>{item.name}</h3>
 
@@ -97,6 +84,10 @@ const Cart = () => {
       <h2>Total: ₹ {cart.total}</h2>
 
       <h2>Selected Total: ₹ {cart.selectedTotal}</h2>
+
+      <button onClick={() => navigate("/checkout")}>
+        Checkout
+      </button>
 
     </div>
 
