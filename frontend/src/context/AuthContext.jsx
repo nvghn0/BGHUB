@@ -4,112 +4,97 @@ import apiClient from "../api/apiClient";
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem("user");
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
+  const [token, setToken] = useState(() => localStorage.getItem("authToken"));
+  const [role, setRole] = useState(() => localStorage.getItem("role"));
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-    const [user, setUser] = useState(() => {
-        const savedUser = localStorage.getItem("user");
-        return savedUser ? JSON.parse(savedUser) : null;
-    });
+  // REGISTER (user only)
+  const register = async (name, email, password, phone = "") => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await apiClient.post("/auth/register", {
+        name, email, password, phone
+      });
 
-    const [token, setToken] = useState(() => localStorage.getItem("authToken"));
-    const [role, setRole] = useState(() => localStorage.getItem("role"));
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+      const { token: newToken, user: userData } = res.data;
 
-    // ============ REGISTER (User Only) ============
-    const register = async (name, email, password, phone = "") => {
-        setLoading(true);
-        setError(null);
+      localStorage.setItem("authToken", newToken);
+      localStorage.setItem("user", JSON.stringify(userData));
+      localStorage.setItem("role", "user");
 
-        try {
-            const response = await apiClient.post("/auth/register", {
-                name,
-                email,
-                password,
-                phone
-            });
+      setToken(newToken);
+      setUser(userData);
+      setRole("user");
 
-            const { token: newToken, user: userData } = response.data;
+      return { success: true, data: userData };
+    } catch (err) {
+      const msg = err.response?.data?.message || "Registration failed";
+      setError(msg);
+      return { success: false, error: msg };
+    } finally {
+      setLoading(false);
+    }
+  };
 
-            localStorage.setItem("authToken", newToken);
-            localStorage.setItem("user", JSON.stringify(userData));
-            localStorage.setItem("role", "user");
+  // LOGIN
+  const login = async (email, password) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await apiClient.post("/auth/login", { email, password });
+      const { token: newToken, user: userData, role: userRole } = res.data;
 
-            setToken(newToken);
-            setUser(userData);
-            setRole("user");
+      localStorage.setItem("authToken", newToken);
+      localStorage.setItem("user", JSON.stringify(userData));
+      localStorage.setItem("role", userRole);
 
-            return { success: true, data: userData };
+      setToken(newToken);
+      setUser(userData);
+      setRole(userRole);
 
-        } catch (err) {
-            const errorMessage = err.response?.data?.message || "Registration failed";
-            setError(errorMessage);
-            return { success: false, error: errorMessage };
-        } finally {
-            setLoading(false);
-        }
-    };
+      return { success: true, data: userData, role: userRole };
+    } catch (err) {
+      const msg = err.response?.data?.message || "Login failed";
+      setError(msg);
+      return { success: false, error: msg };
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    // ============ LOGIN (User) ============
-    const login = async (email, password) => {
-        setLoading(true);
-        setError(null);
+  const logout = () => {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("user");
+    localStorage.removeItem("role");
+    setToken(null);
+    setUser(null);
+    setRole(null);
+    setError(null);
+  };
 
-        try {
-            const response = await apiClient.post("/auth/login", {
-                email,
-                password
-            });
-
-            const { token: newToken, user: userData, role: userRole } = response.data;
-
-            localStorage.setItem("authToken", newToken);
-            localStorage.setItem("user", JSON.stringify(userData));
-            localStorage.setItem("role", userRole);
-
-            setToken(newToken);
-            setUser(userData);
-            setRole(userRole);
-
-            return { success: true, data: userData, role: userRole };
-
-        } catch (err) {
-            const errorMessage = err.response?.data?.message || "Login failed";
-            setError(errorMessage);
-            return { success: false, error: errorMessage };
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // ============ LOGOUT ============
-    const logout = () => {
-        localStorage.removeItem("authToken");
-        localStorage.removeItem("user");
-        localStorage.removeItem("role");
-
-        setToken(null);
-        setUser(null);
-        setRole(null);
-        setError(null);
-    };
-
-    const value = {
+  return (
+    <AuthContext.Provider
+      value={{
         user,
         token,
         role,
         loading,
         error,
-        register,
         login,
         logout,
+        register,
         isLoggedIn: !!token,
         isAdmin: role === "admin",
         isUser: role === "user"
-    };
-
-    return (
-        <AuthContext.Provider value={value}>
-            {children}
-        </AuthContext.Provider>
-    );
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };
