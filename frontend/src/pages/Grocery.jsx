@@ -1,76 +1,39 @@
-import React, { useEffect, useState } from "react";
-import { getAllGroceries } from "../services/groceryService";
-import { addToCart } from "../services/cartService";
-import ProductCard from "../components/ProductCard";
+import { useEffect, useState } from "react";
+import API from "../services/api";
 
 const Grocery = () => {
+  const [products, setProducts] = useState([]);
 
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  // LOAD PRODUCTS
   useEffect(() => {
-
-    const load = async () => {
+    const fetchProducts = async () => {
       try {
-        const data = await getAllGroceries();
-
-        // ✅ handle both possible backend responses
-        setItems(data.products || data.items || []);
-
+        const res = await API.get("/grocery");
+        setProducts(res.data.items);
       } catch (err) {
-        console.log("Error loading groceries:", err);
-      } finally {
-        setLoading(false);
+        console.error("Error fetching products", err);
       }
     };
 
-    load();
-
+    fetchProducts();
   }, []);
 
-  // ADD TO CART
-  const handleAdd = async (productId) => {
-
-    try {
-      await addToCart(productId, 1);
-      alert("Added to cart"); // later replace with toast
-    } catch (err) {
-      console.log("Add to cart error:", err);
-      alert("Error adding item");
-    }
-
-  };
-
-  // LOADING STATE
-  if (loading) return <h2>Loading...</h2>;
-
   return (
+    <div>
+      <h2>Grocery Products</h2>
 
-    <div style={{ padding: "20px" }}>
-
-      <h1>Grocery</h1>
-
-      {items.length === 0 ? (
-
-        <h3>No products found</h3>
-
+      {products.length === 0 ? (
+        <p>No products available</p>
       ) : (
-
-        items.map(item => (
-          <ProductCard
-            key={item._id}
-            product={item}
-            onAdd={handleAdd}
-          />
+        products.map((item) => (
+          <div key={item._id}>
+            <h3>{item.name}</h3>
+            <p>₹{item.price}</p>
+            <button>Add to Cart</button>
+          </div>
         ))
-
       )}
-
     </div>
-
   );
-
 };
 
 export default Grocery;
