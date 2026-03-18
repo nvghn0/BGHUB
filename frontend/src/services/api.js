@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "https://literate-space-invention-v6rwjx5x7rjj2pv5w-5000.app.github.dev/api",
+  baseURL: "https://curly-computing-machine-r4jrvqwjwgxxfp79-5000.app.github.dev/",
 });
 
 // 🔥 VERY IMPORTANT
