@@ -1,29 +1,21 @@
 import axios from 'axios';
 
-// Create an instance of axios with default configurations
 const apiClient = axios.create({
-    baseURL: 'http://localhost:5000/api',
-    timeout: 1000,
+    baseURL: 'https://literate-space-invention-v6rwjx5x7rjj2pv5w-5000.app.github.dev/api',
+    timeout: 5000,
 });
 
-// Add a request interceptor to manage authentication tokens
-apiClient.interceptors.request.use(config => {
-    const token = localStorage.getItem('authToken');
-    if (token) {
-        config.headers['Authorization'] = `Bearer ${token}`;
-    }
-    return config;
-}, error => {
-    return Promise.reject(error);
-});
+apiClient.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem('token');
 
-// Add a response interceptor to handle errors or refresh tokens
-apiClient.interceptors.response.use(response => {
-    return response;
-}, error => {
-    // Handle error responses
-    // You can add your refresh token logic here
-    return Promise.reject(error);
-});
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
 
 export default apiClient;
