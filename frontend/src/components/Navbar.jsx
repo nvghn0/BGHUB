@@ -8,6 +8,7 @@ const Navbar = () => {
   return (
     <div>
       <Link to="/">Home</Link>
+      <Link to="/grocery">Grocery</Link>
 
       {user ? (
         <>
