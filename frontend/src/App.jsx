@@ -1,4 +1,4 @@
-import AppRoutes from "./routes/AppRoutes";
+import AppRoutes from "./Routes/AppRoutes";
 import { AuthProvider } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
 
