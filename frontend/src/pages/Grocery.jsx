@@ -5,52 +5,67 @@ import ProductCard from "../components/ProductCard";
 
 const Grocery = () => {
 
-  const [items,setItems] = useState([]);
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(()=>{
+  // LOAD PRODUCTS
+  useEffect(() => {
 
     const load = async () => {
-      const data = await getAllGroceries();
-      setItems(data.items || []);
+      try {
+        const data = await getAllGroceries();
+
+        // ✅ handle both possible backend responses
+        setItems(data.products || data.items || []);
+
+      } catch (err) {
+        console.log("Error loading groceries:", err);
+      } finally {
+        setLoading(false);
+      }
     };
 
     load();
 
-  },[]);
+  }, []);
 
-
+  // ADD TO CART
   const handleAdd = async (productId) => {
 
-    try{
-
-      await addToCart(productId,1);
-
-      alert("Added to cart");
-
-    }catch(err){
-
+    try {
+      await addToCart(productId, 1);
+      alert("Added to cart"); // later replace with toast
+    } catch (err) {
+      console.log("Add to cart error:", err);
       alert("Error adding item");
-
     }
 
   };
 
+  // LOADING STATE
+  if (loading) return <h2>Loading...</h2>;
 
   return (
 
-    <div>
+    <div style={{ padding: "20px" }}>
 
       <h1>Grocery</h1>
 
-      {items.map(item => (
+      {items.length === 0 ? (
 
-        <ProductCard
-          key={item._id}
-          product={item}
-          onAdd={handleAdd}
-        />
+        <h3>No products found</h3>
 
-      ))}
+      ) : (
+
+        items.map(item => (
+          <ProductCard
+            key={item._id}
+            product={item}
+            onAdd={handleAdd}
+          />
+        ))
+
+      )}
 
     </div>
 
