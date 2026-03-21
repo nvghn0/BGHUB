@@ -9,19 +9,29 @@ const Navbar = () => {
     <div>
       <Link to="/">Home</Link>
       <Link to="/grocery">Grocery</Link>
+      <Link to="/orders">My Orders</Link>
 
       {user ? (
         <>
-          <button onClick={logoutUser}>Logout</button>
+          <button onClick={logoutUser}>Logout</button> 
 
           {user.role === "admin" && (
             <Link to="/admin">Admin Panel</Link>
           )}
+
+          {user?.role === "admin" && (
+              <a href="/admin/orders">Admin Orders</a>
+              )}
+          
         </>
+
+      
       ) : (
         <>
           <Link to="/login">Login</Link>
           <Link to="/register">Register</Link>
+          <Link to="/cart">Cart</Link>
+          
         </>
       )}
     </div>

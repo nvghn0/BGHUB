@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { placeOrder } from "../services/orderService";
+import API from "../services/api";
 import { useNavigate } from "react-router-dom";
 
 const Checkout = () => {
-
   const navigate = useNavigate();
 
+  const [cart, setCart] = useState(null);
   const [addresses, setAddresses] = useState([]);
   const [selectedAddress, setSelectedAddress] = useState("");
 
@@ -20,16 +20,32 @@ const Checkout = () => {
 
   const [loading, setLoading] = useState(false);
 
-  // Fetch saved addresses
-  useEffect(() => {
-    const fetchAddresses = async () => {
-      const data = await getAddresses();
-      setAddresses(data);
-    };
+  // ✅ FETCH CART
+  const fetchCart = async () => {
+    try {
+      const res = await API.get("/cart");
+      setCart(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
+  // ✅ FETCH ADDRESSES (agar future me API ho)
+  const fetchAddresses = async () => {
+    try {
+      const res = await API.get("/address"); // adjust if needed
+      setAddresses(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchCart();
     fetchAddresses();
   }, []);
 
+  // ✅ INPUT HANDLE
   const handleChange = (e) => {
     setShipping({
       ...shipping,
@@ -37,17 +53,16 @@ const Checkout = () => {
     });
   };
 
+  // ✅ PLACE ORDER
   const handleOrder = async () => {
     try {
       setLoading(true);
+await API.post("/orders/place", {
+  shipping,
+  paymentMethod: "COD"
+});
 
-      const res = await placeOrder({
-        shipping,
-        addressId: selectedAddress,
-        paymentMethod: "COD"
-      });
-
-      alert("Order placed!");
+      alert("Order placed successfully");
       navigate("/");
     } catch (err) {
       alert(err.response?.data?.message || "Order failed");
@@ -56,60 +71,35 @@ const Checkout = () => {
     }
   };
 
+  if (!cart) return <p>Loading...</p>;
+
   return (
     <div style={{ maxWidth: "500px", margin: "auto" }}>
-
       <h2>Checkout</h2>
 
-      <input
-        name="fullName"
-        placeholder="Full Name"
-        onChange={handleChange}
-      />
+      {/* ✅ TOTAL */}
+      <h3>Selected Total: ₹{cart.selectedTotal}</h3>
 
+      {/* ❗ FORM */}
+      <input name="fullName" placeholder="Full Name" onChange={handleChange} />
       <br /><br />
 
-      <input
-        name="phone"
-        placeholder="Phone"
-        onChange={handleChange}
-      />
-
+      <input name="phone" placeholder="Phone" onChange={handleChange} />
       <br /><br />
 
-      <input
-        name="addressLine1"
-        placeholder="Address"
-        onChange={handleChange}
-      />
-
+      <input name="addressLine1" placeholder="Address" onChange={handleChange} />
       <br /><br />
 
-      <input
-        name="city"
-        placeholder="City"
-        onChange={handleChange}
-      />
-
+      <input name="city" placeholder="City" onChange={handleChange} />
       <br /><br />
 
-      <input
-        name="state"
-        placeholder="State"
-        onChange={handleChange}
-      />
-
+      <input name="state" placeholder="State" onChange={handleChange} />
       <br /><br />
 
-      <input
-        name="pincode"
-        placeholder="Pincode"
-        onChange={handleChange}
-      />
-
+      <input name="pincode" placeholder="Pincode" onChange={handleChange} />
       <br /><br />
 
-      {/* Address Dropdown */}
+      {/* ✅ ADDRESS SELECT */}
       <select onChange={(e) => setSelectedAddress(e.target.value)}>
         <option value="">Select Address</option>
 
@@ -122,13 +112,10 @@ const Checkout = () => {
 
       <br /><br />
 
-      <button
-        onClick={handleOrder}
-        disabled={loading}
-      >
+      {/* ✅ BUTTON */}
+      <button onClick={handleOrder} disabled={loading}>
         {loading ? "Placing Order..." : "Place Order"}
       </button>
-
     </div>
   );
 };
