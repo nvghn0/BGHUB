@@ -40,6 +40,7 @@ router.get("/my-orders", verifyToken, async (req, res) => {
 router.get("/admin", verifyToken, isAdmin, async (req, res) => {
     try {
         const orders = await Order.find()
+          .populate("user", "email") 
             .sort({ createdAt: -1 });
 
         res.json(orders);

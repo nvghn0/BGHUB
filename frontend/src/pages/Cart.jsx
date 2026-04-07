@@ -9,13 +9,6 @@ const Cart = () => {
 
   // ✅ FETCH CART
   const fetchCart = async () => {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      navigate("/login");
-      return;
-    }
-
     try {
       const res = await API.get("/cart");
       setCart(res.data);
@@ -94,10 +87,8 @@ const Cart = () => {
     <div>
       <h2>Your Cart</h2>
 
-      {/* 🔥 Loading Indicator */}
       {loading && <p>Updating...</p>}
 
-      {/* ✅ Select All */}
       <button onClick={() => handleSelectAll(true)} disabled={loading}>
         Select All
       </button>
@@ -112,8 +103,6 @@ const Cart = () => {
         <>
           {cart.items.map((item) => (
             <div key={item._id} style={{ marginBottom: "20px" }}>
-
-              {/* ✅ Checkbox */}
               <input
                 type="checkbox"
                 checked={item.selected}
@@ -124,7 +113,6 @@ const Cart = () => {
               <h3>{item.name}</h3>
               <p>₹{item.price}</p>
 
-              {/* ✅ Quantity Controls */}
               <button
                 onClick={() => updateQty(item._id, item.quantity - 1)}
                 disabled={loading}
@@ -141,7 +129,6 @@ const Cart = () => {
                 +
               </button>
 
-              {/* ✅ Remove */}
               <button
                 onClick={() => handleRemove(item._id)}
                 disabled={loading}
@@ -153,10 +140,9 @@ const Cart = () => {
           ))}
 
           <button onClick={() => navigate("/checkout")}>
-              Proceed to Checkout
-              </button>
+            Proceed to Checkout
+          </button>
 
-          {/* ✅ Totals */}
           <h3>Total: ₹{cart.total}</h3>
           <h3>Selected Total: ₹{cart.selectedTotal}</h3>
         </>

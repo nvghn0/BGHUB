@@ -30,11 +30,18 @@ const Checkout = () => {
     }
   };
 
-  // ✅ FETCH ADDRESSES (agar future me API ho)
+  // ✅ FETCH ADDRESSES
   const fetchAddresses = async () => {
     try {
-      const res = await API.get("/address"); // adjust if needed
+      const res = await API.get("/user/address");
       setAddresses(res.data);
+
+      // 🔥 Auto select default address
+      const defaultAddr = res.data.find((a) => a.isDefault);
+      if (defaultAddr) {
+        setSelectedAddress(defaultAddr._id);
+      }
+
     } catch (err) {
       console.error(err);
     }
@@ -53,17 +60,36 @@ const Checkout = () => {
     });
   };
 
-  // ✅ PLACE ORDER
+  // ✅ PLACE ORDER (FINAL LOGIC)
   const handleOrder = async () => {
     try {
       setLoading(true);
-await API.post("/orders/place", {
-  shipping,
-  paymentMethod: "COD"
-});
+
+      let payload = {
+        paymentMethod: "COD"
+      };
+
+      // 🔥 SMART LOGIC
+      if (selectedAddress) {
+        payload.addressId = selectedAddress;
+      } else {
+        // ❗ validation
+        const { fullName, phone, addressLine1, city, state, pincode } = shipping;
+
+        if (!fullName || !phone || !addressLine1 || !city || !state || !pincode) {
+          alert("Please fill complete address");
+          setLoading(false);
+          return;
+        }
+
+        payload.shipping = shipping;
+      }
+
+      await API.post("/orders/place", payload);
 
       alert("Order placed successfully");
-      navigate("/");
+      navigate("/orders");
+
     } catch (err) {
       alert(err.response?.data?.message || "Order failed");
     } finally {
@@ -80,7 +106,26 @@ await API.post("/orders/place", {
       {/* ✅ TOTAL */}
       <h3>Selected Total: ₹{cart.selectedTotal}</h3>
 
-      {/* ❗ FORM */}
+      {/* ✅ ADDRESS SELECT */}
+      <h4>Select Saved Address</h4>
+      <select
+        value={selectedAddress}
+        onChange={(e) => setSelectedAddress(e.target.value)}
+      >
+        <option value="">-- Use New Address --</option>
+
+        {addresses.map((addr) => (
+          <option key={addr._id} value={addr._id}>
+            {addr.addressLine1} ({addr.city})
+          </option>
+        ))}
+      </select>
+
+      <br /><br />
+
+      {/* ❗ MANUAL FORM */}
+      <h4>Or Enter New Address</h4>
+
       <input name="fullName" placeholder="Full Name" onChange={handleChange} />
       <br /><br />
 
@@ -97,19 +142,6 @@ await API.post("/orders/place", {
       <br /><br />
 
       <input name="pincode" placeholder="Pincode" onChange={handleChange} />
-      <br /><br />
-
-      {/* ✅ ADDRESS SELECT */}
-      <select onChange={(e) => setSelectedAddress(e.target.value)}>
-        <option value="">Select Address</option>
-
-        {addresses.map((addr) => (
-          <option key={addr._id} value={addr._id}>
-            {addr.addressLine1}
-          </option>
-        ))}
-      </select>
-
       <br /><br />
 
       {/* ✅ BUTTON */}

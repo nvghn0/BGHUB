@@ -1,34 +1,25 @@
-import api from "../api/api";
+import API from "./api";
 
-// USER
+// ✅ GET ALL
 export const getAllGroceries = async () => {
-    const res = await api.get("/grocery");
+  const res = await API.get("/groceries");
     return res.data;
-};
+    };
 
-export const getGroceryById = async (id) => {
-    const res = await api.get(`/grocery/${id}`);
-    return res.data;
-};
+    // ✅ ADD
+    export const addGrocery = async (data) => {
+      const res = await API.post("/groceries/add", data);
+        return res.data;
+        };
 
-export const getGroceriesByCategory = async (type) => {
-    const res = await api.get(`/grocery/category/${type}`);
-    return res.data;
-};
+        // ✅ UPDATE
+        export const updateGrocery = async (id, data) => {
+          const res = await API.put(`/groceries/${id}`, data);
+            return res.data;
+            };
 
-
-// ADMIN
-export const addGrocery = async (data) => {
-    const res = await api.post("/grocery/add", data);
-    return res.data;
-};
-
-export const updateGrocery = async (id, data) => {
-    const res = await api.put(`/grocery/${id}`, data);
-    return res.data;
-};
-
-export const deleteGrocery = async (id) => {
-    const res = await api.delete(`/grocery/${id}`);
-    return res.data;
-};
+            // ✅ DELETE
+            export const deleteGrocery = async (id) => {
+              const res = await API.delete(`/groceries/${id}`);
+                return res.data;
+                };

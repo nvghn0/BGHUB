@@ -1,6 +1,9 @@
-import api from "../api/api";
-
 export const getDashboardStats = async () => {
-  const res = await api.get("/admin/dashboard");
+  try {
+    const res = await API.get("/admin/dashboard");
     return res.data;
-    };
+  } catch (err) {
+    console.error("Dashboard error:", err);
+    throw err;
+  }
+};

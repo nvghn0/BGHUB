@@ -4,6 +4,7 @@ import API from "../services/api";
 
 const Grocery = () => {
   const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   // ✅ Fetch Products
@@ -11,7 +12,9 @@ const Grocery = () => {
     const fetchProducts = async () => {
       try {
         const res = await API.get("/groceries");
-        setProducts(res.data.items);
+
+        // 🔥 Safe handling (items ya direct array dono handle)
+        setProducts(res.data.items || res.data);
       } catch (err) {
         console.error("Error fetching products", err);
       }
@@ -20,16 +23,11 @@ const Grocery = () => {
     fetchProducts();
   }, []);
 
-  // ✅ Add to Cart Function
+  // ✅ Add to Cart
   const handleAddToCart = async (productId) => {
-    const token = localStorage.getItem("token");
+    if (loading) return;
 
-    // ❗ Login check
-    if (!token) {
-      navigate("/login");
-      return;
-    }
-
+    setLoading(true);
     try {
       await API.post("/cart/add", {
         productId,
@@ -38,7 +36,14 @@ const Grocery = () => {
 
       alert("Added to cart");
     } catch (err) {
-      alert(err.response?.data?.message || "Error adding to cart");
+      // 🔥 Better UX handling
+      if (err.response?.status === 401) {
+        navigate("/login");
+      } else {
+        alert(err.response?.data?.message || "Error adding to cart");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -50,14 +55,22 @@ const Grocery = () => {
         <p>No products available</p>
       ) : (
         products.map((item) => (
-          <div key={item._id}>
+          <div key={item._id} style={{ marginBottom: "20px" }}>
+
             <h3>{item.name}</h3>
             <p>₹{item.price}</p>
 
-            {/* ✅ Button connect kiya */}
-            <button onClick={() => handleAddToCart(item._id)}>
-              Add to Cart
+            {/* 🔥 Extra useful info */}
+            <p>Stock: {item.stock}</p>
+            <img src={item.imageUrl} alt={item.name} width="100" />
+
+            <button
+              onClick={() => handleAddToCart(item._id)}
+              disabled={loading || item.stock === 0}
+            >
+              {item.stock === 0 ? "Out of Stock" : "Add to Cart"}
             </button>
+
           </div>
         ))
       )}

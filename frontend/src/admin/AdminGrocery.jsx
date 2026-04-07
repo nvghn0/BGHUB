@@ -1,55 +1,133 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
-    getAllGroceries,
-    deleteGrocery
+  getAllGroceries,
+  addGrocery,
+  updateGrocery,
+  deleteGrocery,
 } from "../services/groceryService";
 
 const AdminGrocery = () => {
+  const [items, setItems] = useState([]);
 
-    const [items, setItems] = useState([]);
+  const [form, setForm] = useState({
+    name: "",
+    price: "",
+    stock: "",
+    category: "",
+    imageUrl: "",
+  });
 
-    const loadProducts = async () => {
-        const data = await getAllGroceries();
-        setItems(data.items || []);
-    };
+  const [editId, setEditId] = useState(null);
 
-    useEffect(() => {
-        loadProducts();
-    }, []);
+  // 🔥 LOAD PRODUCTS
+  const loadProducts = async () => {
+    const data = await getAllGroceries();
+    setItems(data.items || data);
+  };
 
+  useEffect(() => {
+    loadProducts();
+  }, []);
 
-    const handleDelete = async (id) => {
+  // 🔥 HANDLE INPUT
+  const handleChange = (e) => {
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value,
+    });
+  };
 
-        if (!window.confirm("Delete item?")) return;
+  // 🔥 ADD / UPDATE
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-        await deleteGrocery(id);
+    try {
+      if (editId) {
+        await updateGrocery(editId, form);
+        alert("Updated successfully");
+      } else {
+        await addGrocery(form);
+        alert("Added successfully");
+      }
 
-        loadProducts();
-    };
+      setForm({
+        name: "",
+        price: "",
+        stock: "",
+        category: "",
+        imageUrl: "",
+      });
 
+      setEditId(null);
+      loadProducts();
 
-    return (
+    } catch (err) {
+      alert(err.response?.data?.message || "Error");
+    }
+  };
 
-        <div>
+  // 🔥 DELETE
+  const handleDelete = async (id) => {
+    if (!window.confirm("Delete item?")) return;
 
-            <h1>Admin Grocery Panel</h1>
+    await deleteGrocery(id);
+    loadProducts();
+  };
 
-            {items.map(p => (
+  // 🔥 EDIT
+  const handleEdit = (item) => {
+    setForm({
+      name: item.name,
+      price: item.price,
+      stock: item.stock,
+      category: item.category,
+      imageUrl: item.imageUrl,
+    });
 
-                <div key={p._id}>
+    setEditId(item._id);
+  };
 
-                    <span>{p.name}</span>
+  return (
+    <div style={{ maxWidth: "600px", margin: "auto" }}>
+      <h1>Admin Grocery Panel</h1>
 
-                    <button onClick={() => handleDelete(p._id)}>
-                        Delete
-                    </button>
+      {/* 🔥 FORM */}
+      <form onSubmit={handleSubmit}>
+        <input name="name" placeholder="Name" value={form.name} onChange={handleChange} required />
+        <br /><br />
 
-                </div>
+        <input name="price" placeholder="Price" value={form.price} onChange={handleChange} required />
+        <br /><br />
 
-            ))}
+        <input name="stock" placeholder="Stock" value={form.stock} onChange={handleChange} required />
+        <br /><br />
 
+        <input name="category" placeholder="Category" value={form.category} onChange={handleChange} required />
+        <br /><br />
+
+        <input name="imageUrl" placeholder="Image URL" value={form.imageUrl} onChange={handleChange} />
+        <br /><br />
+
+        <button type="submit">
+          {editId ? "Update Product" : "Add Product"}
+        </button>
+      </form>
+
+      <hr />
+
+      {/* 🔥 PRODUCT LIST */}
+      {items.map((p) => (
+        <div key={p._id} style={{ marginBottom: "20px" }}>
+          <h3>{p.name}</h3>
+          <p>₹{p.price}</p>
+          <p>Stock: {p.stock}</p>
+
+          <button onClick={() => handleEdit(p)}>Edit</button>
+          <button onClick={() => handleDelete(p._id)}>Delete</button>
         </div>
-    );
+      ))}
+    </div>
+  );
 };
 
 export default AdminGrocery;

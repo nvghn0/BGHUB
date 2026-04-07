@@ -8,7 +8,10 @@ import Cart from "../pages/Cart";
 import ProtectedRoute from "../components/ProtectedRoute";
 import Checkout from "../pages/Checkout";
 import Orders from "../pages/Orders";
-import AdminOrders from "../pages/AdminOrders";
+import Address from "../pages/Address";
+import AdminOrders from "../admin/AdminOrders";
+import AdminGrocery from "../admin/AdminGrocery";
+
 
 
 const AppRoutes = () => {
@@ -49,6 +52,15 @@ const AppRoutes = () => {
         }
       />
 
+      <Route
+        path="/admin/grocery"
+        element={
+          <ProtectedRoute adminOnly={true}>
+            <AdminGrocery />
+          </ProtectedRoute>
+        }
+      />
+
       {/* cart route */}
       <Route
         path="/cart"
@@ -65,6 +77,15 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Checkout />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/address"
+        element={
+          <ProtectedRoute>
+            <Address />
           </ProtectedRoute>
         }
       />
